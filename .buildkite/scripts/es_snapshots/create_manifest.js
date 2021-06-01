@@ -64,9 +64,13 @@ const { execSync } = require('child_process');
     const manifestJSON = JSON.stringify(manifest, null, 2);
     fs.writeFileSync(`${destination}/manifest.json`, manifestJSON);
 
+    console.log('Manifest:', manifestJSON);
+
     execSync(
       `
       set -euo pipefail
+
+      echo '--- Upload files to GCS'
       cd "${destination}"
       gsutil -m cp -r *.* gs://ci-artifacts.kibana.dev/es-snapshots-daily-buildkite/${DESTINATION}
       cp manifest.json manifest-latest.json
