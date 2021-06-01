@@ -38,7 +38,11 @@ export "$(grep '^ES_BUILD_JAVA' .ci/java-versions.properties | xargs)"
 export PATH="$HOME/.java/$ES_BUILD_JAVA/bin:$PATH"
 export JAVA_HOME="$HOME/.java/$ES_BUILD_JAVA"
 
-docker rm -f dind || true
+# The Elasticsearch Dockerfile needs to be built with root privileges, but Docker on our servers is running using a non-root user
+# So, let's use docker-in-docker to temporarily create a privileged docker daemon to run `docker build` on
+# We have to do this, because there's no `docker build --privileged` or similar
+
+docker rm -f dind || true # If there's an old daemon running that somehow didn't get cleaned up, lets remove it first
 CERTS_DIR="$HOME/dind-certs"
 rm -rf "$CERTS_DIR"
 docker run -d --rm --privileged --name dind --userns host -p 2377:2376 -e DOCKER_TLS_CERTDIR=/certs -v "$CERTS_DIR":/certs docker:dind
